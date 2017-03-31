@@ -5,13 +5,15 @@ import operator
 import time
 from qqbot import QQBotSlot as qqbotslot, RunBot
 
+
 REC_POINT = 3
 DEF_POINT = 6
 REW_POINT = 10
 SKILL_COST = 10
+ADMIN_QQ = '744413880'
 acts = ["灵犀一指", "凤舞九天", "袖里乾坤", "摄魂大法", "横练十三太保", "金钟罩铁布衫", "流云飞袖", "铁砂掌",
         "如来神掌", "天残脚", "拈花指", "葵花宝典", "猴子偷桃", "神仙采葡萄", "抓奶龙抓手"]
-skills = ["", "圣盾", "致命一击", "全神贯注", "自我保护"]
+skills = ["", "圣盾", "致命一击", "全神贯注", "自我保护", "怒不可遏"]
 point_dict = {}
 ban_dict = {}
 skill_dict = {}
@@ -46,6 +48,10 @@ def init_member(m):
         skill_dict[m.qq][4]
     except:
         skill_dict[m.qq][4] = False
+    try:
+        skill_dict[m.qq][5]
+    except:
+        skill_dict[m.qq][5] = False
 
 
 # 体力值查询
@@ -114,7 +120,8 @@ def onQQMessage(bot, contact, member, content):
                 "1 - 圣盾：防御下一次攻击。\n"
                 "2 - 致命一击：下一次攻击若成功，目标在自然解除前无法被救。\n"
                 "3 - 全神贯注：下一次攻击的怒气值提高20%。\n"
-                "4 - 自我保护：下一次攻击若失败不会被封禁（会损失体力）。"
+                "4 - 自我保护：下一次攻击若失败不会被封禁（会损失体力）。\n"
+                "5 - 怒不可遏：下一次攻击若成功，目标额外随机丢弃体力值的0-100%，但自己会被禁言相同分钟数。"
             )
         )
 
@@ -147,6 +154,10 @@ def onQQMessage(bot, contact, member, content):
             skill_dict[member.qq][4] = True
             point_dec(member, SKILL_COST)
             bot.SendTo(contact, member.name + " 启用了道具 自我保护，剩余体力值" + point_format(member) + "。")
+        elif int(content[-1]) == 5:
+            skill_dict[member.qq][5] = True
+            point_dec(member, SKILL_COST)
+            bot.SendTo(contact, member.name + " 启用了道具 怒不可遏，剩余体力值" + point_format(member) + "。")
         else:
             bot.SendTo(contact, member.name + " 购买参数错误，禁言1分钟。")
             bot.GroupShut(contact, [member], t=60 * 1)
@@ -164,7 +175,7 @@ def onQQMessage(bot, contact, member, content):
         message = member.name + " 体力值: " + "{:.1f}".format(point_dict[member.qq])
         if skill(member, 1) or skill(member, 2) or skill(member, 3) or skill(member, 4):
             message += "\n"
-            for cat in range(1, 5):
+            for cat in range(1, 6):
                 if skill(member, cat):
                     message += skills[cat] + " "
         bot.SendTo(contact, message)
@@ -180,7 +191,10 @@ def onQQMessage(bot, contact, member, content):
         sorted_point_dict = sorted(point_dict.items(), key=operator.itemgetter(1), reverse=True)
         s = "体力值排行"
         for t in sorted_point_dict:
-            s += "\n" + qq_name[t[0]] + ":" + "{:.1f}".format(t[1])
+            try:
+                s += "\n" + qq_name[t[0]] + ":" + "{:.1f}".format(t[1])
+            except:
+                pass
         bot.SendTo(contact, s)
 
     # 对战
@@ -253,6 +267,12 @@ def onQQMessage(bot, contact, member, content):
             bot.GroupShut(contact, [fk_from], t=fk_minute * 60 * 2)
             return
 
+        # 攻击管理员限制
+        if fk_to.qq == ADMIN_QQ:
+            bot.SendTo(contact, fk_from.name + " 竟敢挑战管理员，反了你了。")
+            bot.GroupShut(contact, [fk_from], t=fk_minute * 60)
+            return
+
         # 攻击过程
         success_rate = random.random() * 100
         fk_rate = random.random() * 100
@@ -268,6 +288,9 @@ def onQQMessage(bot, contact, member, content):
         # 判定
         if skill_dict[fk_to.qq][1] and success_rate + fk_rate >= 100:
             message += "但 " + fk_to.name + " 使用圣盾躲过了攻击！什么都没有发生。"
+            if skill_dict[fk_from.qq][5]:
+                message += fk_from.name + " 浪费了一个怒不可遏。"
+            point_dec(fk_from, fk_minute)
         elif success_rate + fk_rate >= 100:
             # 攻击成功
             message += "攻击命中！"
@@ -277,6 +300,13 @@ def onQQMessage(bot, contact, member, content):
                 ban_dict[fk_to.qq] = time.time() + fk_minute * 60
             if skill_dict[fk_from.qq][4]:
                 message += "浪费了一个自我保护。"
+            if skill_dict[fk_from.qq][5]:
+                p = random.random()
+                point_dict[fk_to.qq] *= (1 - p)
+                p *= 100
+                message += fk_from.name + " 使用怒不可遏，自己禁言" + str(int(p)) + "分钟， " + fk_to.name\
+                           + " 丢弃" + "{:.1f}".format(p) + "%的体力值！"
+                bot.GroupShut(contact, [fk_from], t=int(p))
             point_inc(fk_from, fk_minute)
             point_dec(fk_to, float(fk_minute) / 2.0)
         else:
@@ -290,6 +320,8 @@ def onQQMessage(bot, contact, member, content):
                 message += fk_to.name + " 浪费了一个圣盾。"
             if skill_dict[fk_from.qq][2]:
                 message += fk_from.name + " 浪费了一个致命一击。"
+            if skill_dict[fk_from.qq][5]:
+                message += fk_from.name + " 浪费了一个怒不可遏。"
             point_dec(fk_from, fk_minute)
             point_inc(fk_to, float(fk_minute) / 2.0)
 
@@ -301,6 +333,7 @@ def onQQMessage(bot, contact, member, content):
         skill_dict[fk_from.qq][2] = False
         skill_dict[fk_from.qq][3] = False
         skill_dict[fk_from.qq][4] = False
+        skill_dict[fk_from.qq][5] = False
 
         # 绝杀判定
         message = fk_from.name + " 剩余体力：" + point_format(fk_from) + "\n"\

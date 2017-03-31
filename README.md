@@ -3,6 +3,12 @@ This is a chatbot using qqbot library / smartQQ API to provide a real-time word-
 
 ## Changelog 更新日志
 
+### 0.4 alpha
+- 重构代码，复用率提高
+- 增加个人道具查询
+- 新增道具“全神贯注”“自我保护”
+- 多处Bug修复
+
 ### 0.3 beta
 - 新增道具系统以及道具“圣盾”“致命一击”
 - 新增排行榜

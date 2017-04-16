@@ -3,7 +3,9 @@ This is a chatbot using qqbot library / smartQQ API to provide a real-time word-
 
 ## Changelog 更新日志
 
-### 0.4 beta (2017)
+### 群主期末考试，没空写了...欢迎各位增加功能，给我发Pull Request...
+
+### 0.4 beta (2017-04-01)
 - 新增道具“怒不可遏”
 - 修改道具“圣盾”
 - 新增管理员攻击限制

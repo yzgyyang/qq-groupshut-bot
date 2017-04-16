@@ -306,7 +306,7 @@ def onQQMessage(bot, contact, member, content):
                 p *= 100
                 message += fk_from.name + " 使用怒不可遏，自己禁言" + str(int(p)) + "分钟， " + fk_to.name\
                            + " 丢弃" + "{:.1f}".format(p) + "%的体力值！"
-                bot.GroupShut(contact, [fk_from], t=int(p))
+                bot.GroupShut(contact, [fk_from], t=60 * int(p))
             point_inc(fk_from, fk_minute)
             point_dec(fk_to, float(fk_minute) / 2.0)
         else:

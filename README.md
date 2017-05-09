@@ -40,3 +40,9 @@ This is a chatbot using qqbot library / smartQQ API to provide a real-time word-
 
 ### 0.1 (2017-03-27)
 - 实现了随机数比大小禁言功能
+
+## To-dos 待实现的功能  
+
+- 适配qqbot新库  
+- 管理员设置  
+- 啰嗦模式  

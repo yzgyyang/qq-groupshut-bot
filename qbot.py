@@ -5,6 +5,10 @@ import operator
 import time
 from qqbot import QQBotSlot as qqbotslot, RunBot
 
+combat_flag = False
+repeat_flag = False
+
+REPEAT_CHANCE = 13
 
 REC_POINT = 3
 DEF_POINT = 6
@@ -96,8 +100,39 @@ def find_qq(bot, g, qq):
 # 主响应函数
 @qqbotslot
 def onQQMessage(bot, contact, member, content):
+
+    # 啰嗦模式
+    if repeat_flag:
+        if random.random() * 100 < REPEAT_CHANCE:
+            bot.SendTo(contact, content)
+
+    # 管理员
+    if "-admin" in content and member.qq == ADMIN_QQ:
+        if member.qq == ADMIN_QQ:
+            if "combat" in content:
+                if "on" in content:
+                    global combat_flag
+                    combat_flag = True
+                    bot.SendTo(contact, "管理员开启了决斗功能，请小心行动。")
+                elif "off" in content:
+                    global combat_flag
+                    combat_flag = False
+                    bot.SendTo(contact, "管理员关闭了决斗功能。")
+            if "repeat" in content:
+                if "on" in content:
+                    global repeat_flag
+                    repeat_flag = True
+                    bot.SendTo(contact, "管理员开启了啰嗦模式。")
+                elif "off" in content:
+                    global repeat_flag
+                    repeat_flag = False
+                    bot.SendTo(contact, "管理员关闭了啰嗦模式。")
+        else:
+            bot.SendTo(contact, "我只听光光的！哼！")
+            bot.GroupShut(contact, [member], t=1 * 60)
+
     # 帮助
-    if content == '-help':
+    elif content == '-help' and combat_flag:
         bot.SendTo(contact,
             (
                 "道具帮助：'-help-skill'\n"
@@ -113,7 +148,7 @@ def onQQMessage(bot, contact, member, content):
         )
 
     # 道具帮助
-    elif content == '-help-skill':
+    elif content == '-help-skill' and combat_flag:
         bot.SendTo(contact,
             (
                 "购买道具：'-skill 道具编号' 消耗体力值" + str(SKILL_COST) + "\n"
@@ -126,7 +161,7 @@ def onQQMessage(bot, contact, member, content):
         )
 
     # 道具购买
-    elif '-skill' in content:
+    elif '-skill' in content and combat_flag:
         init_member(member)
 
         # 检查输入合法性
@@ -170,7 +205,7 @@ def onQQMessage(bot, contact, member, content):
             point_set(member, REC_POINT)
 
     # 查询状态
-    elif content == '-status':
+    elif content == '-status' and combat_flag:
         init_member(member)
         message = member.name + " 体力值: " + "{:.1f}".format(point_dict[member.qq])
         if skill(member, 1) or skill(member, 2) or skill(member, 3) or skill(member, 4):
@@ -181,7 +216,7 @@ def onQQMessage(bot, contact, member, content):
         bot.SendTo(contact, message)
 
     # 排名
-    elif content == '-rank':
+    elif content == '-rank' and combat_flag:
         qq_name = {}
         for key in point_dict:
             try:
@@ -198,7 +233,7 @@ def onQQMessage(bot, contact, member, content):
         bot.SendTo(contact, s)
 
     # 对战
-    elif '-fk' in content:
+    elif '-fk' in content and combat_flag:
 
         # 尝试攻击机器人，被封10分钟
         if '@ME' in content:

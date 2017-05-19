@@ -3,6 +3,11 @@ This is a chatbot using qqbot library / smartQQ API to provide a real-time word-
 
 ## Changelog 更新日志
 
+### 0.5 beta (2017-05-19)
+- 新增管理员管理功能
+- 新增啰嗦模式，一定几率重复说过的话
+- 适配新库
+
 ### 群主期末考试，没空写了...欢迎各位增加功能，给我发Pull Request...
 
 ### 0.4 beta (2017-04-01)
@@ -42,7 +47,3 @@ This is a chatbot using qqbot library / smartQQ API to provide a real-time word-
 - 实现了随机数比大小禁言功能
 
 ## To-dos 待实现的功能  
-
-- 适配qqbot新库  
-- 管理员设置  
-- 啰嗦模式  
